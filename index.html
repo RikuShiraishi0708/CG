@@ -1,112 +1,85 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Car Example</title>
+    <title>Three.js Example</title>
     <style>
         body { margin: 0; }
         canvas { display: block; }
     </style>
 </head>
 <body>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.139.2/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.139.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/OrbitControls.js"></script>
     <script>
-        // Scene, Camera, Renderer
+        // Scene setup
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
-        renderer.shadowMap.enabled = true;
 
-        // Orbit Controls
+        // OrbitControls
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        camera.position.set(0, 5, 10);
-        controls.update();
+        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.maxPolarAngle = Math.PI / 2;
 
         // Lighting
         const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
         scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 10, 7.5);
-        directionalLight.castShadow = true;
-        scene.add(directionalLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(10, 10, 10);
+        pointLight.castShadow = true;
+        scene.add(pointLight);
 
-        // Car Group
-        const carGroup = new THREE.Group();
+        // Shadow settings
+        renderer.shadowMap.enabled = true;
 
-        // Car Body
-        const bodyGeometry = new THREE.BoxGeometry(4, 1, 2);
-        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 1;
-        body.castShadow = true;
-        carGroup.add(body);
+        // Materials
+        const material1 = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const material2 = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
 
-        // Car Roof
-        const roofGeometry = new THREE.BoxGeometry(2, 0.5, 1.5);
-        const roofMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-        const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-        roof.position.set(0, 1.5, 0);
-        roof.castShadow = true;
-        carGroup.add(roof);
+        // Geometries
+        const geometry1 = new THREE.BoxGeometry(1, 1, 1);
+        const geometry2 = new THREE.SphereGeometry(0.5, 32, 32);
 
-        // Wheels
-        const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 32);
-        const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+        // Meshes
+        const cube = new THREE.Mesh(geometry1, material1);
+        cube.position.set(-1, 0, 0);
+        cube.castShadow = true;
 
-        const frontLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-        frontLeftWheel.position.set(-1.5, 0.5, 1.25);
-        frontLeftWheel.rotation.z = Math.PI / 2;
-        frontLeftWheel.castShadow = true;
-        carGroup.add(frontLeftWheel);
+        const sphere = new THREE.Mesh(geometry2, material2);
+        sphere.position.set(1, 0, 0);
+        sphere.castShadow = true;
 
-        const frontRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-        frontRightWheel.position.set(1.5, 0.5, 1.25);
-        frontRightWheel.rotation.z = Math.PI / 2;
-        frontRightWheel.castShadow = true;
-        carGroup.add(frontRightWheel);
+        // Grouping
+        const group = new THREE.Group();
+        group.add(cube);
+        group.add(sphere);
 
-        const backLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-        backLeftWheel.position.set(-1.5, 0.5, -1.25);
-        backLeftWheel.rotation.z = Math.PI / 2;
-        backLeftWheel.castShadow = true;
-        carGroup.add(backLeftWheel);
+        scene.add(group);
 
-        const backRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-        backRightWheel.position.set(1.5, 0.5, -1.25);
-        backRightWheel.rotation.z = Math.PI / 2;
-        backRightWheel.castShadow = true;
-        carGroup.add(backRightWheel);
+        // Camera position
+        camera.position.z = 5;
 
-        // Add Car Group to Scene
-        scene.add(carGroup);
-
-        // Ground
-        const groundGeometry = new THREE.PlaneGeometry(200, 200);
-        const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
-        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        scene.add(ground);
-
-        // Animation Loop
-        function animate() {
+        // Render loop
+        const animate = function () {
             requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+            group.rotation.x += 0.01;
+            group.rotation.y += 0.01;
+
+            controls.update();
+
+            renderer.render(scene, camera);
+        };
+
+        animate();
     </script>
 </body>
 </html>
