@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Car Example</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.139.2/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Scene, Camera, Renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        renderer.shadowMap.enabled = true;
+
+        // Orbit Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        camera.position.set(0, 5, 10);
+        controls.update();
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 7.5);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        // Car Group
+        const carGroup = new THREE.Group();
+
+        // Car Body
+        const bodyGeometry = new THREE.BoxGeometry(4, 1, 2);
+        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.y = 1;
+        body.castShadow = true;
+        carGroup.add(body);
+
+        // Car Roof
+        const roofGeometry = new THREE.BoxGeometry(2, 0.5, 1.5);
+        const roofMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+        roof.position.set(0, 1.5, 0);
+        roof.castShadow = true;
+        carGroup.add(roof);
+
+        // Wheels
+        const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.5, 32);
+        const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 });
+
+        const frontLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        frontLeftWheel.position.set(-1.5, 0.5, 1.25);
+        frontLeftWheel.rotation.z = Math.PI / 2;
+        frontLeftWheel.castShadow = true;
+        carGroup.add(frontLeftWheel);
+
+        const frontRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        frontRightWheel.position.set(1.5, 0.5, 1.25);
+        frontRightWheel.rotation.z = Math.PI / 2;
+        frontRightWheel.castShadow = true;
+        carGroup.add(frontRightWheel);
+
+        const backLeftWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        backLeftWheel.position.set(-1.5, 0.5, -1.25);
+        backLeftWheel.rotation.z = Math.PI / 2;
+        backLeftWheel.castShadow = true;
+        carGroup.add(backLeftWheel);
+
+        const backRightWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+        backRightWheel.position.set(1.5, 0.5, -1.25);
+        backRightWheel.rotation.z = Math.PI / 2;
+        backRightWheel.castShadow = true;
+        carGroup.add(backRightWheel);
+
+        // Add Car Group to Scene
+        scene.add(carGroup);
+
+        // Ground
+        const groundGeometry = new THREE.PlaneGeometry(200, 200);
+        const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
